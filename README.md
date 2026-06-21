@@ -15,15 +15,11 @@ def compute(values):
 
 - Folds logging/print calls the moment you open a file.
 - Leaves general folding (functions, classes, blocks) completely untouched.
-- Coexists with [nvim-origami](https://github.com/chrisgrieser/nvim-origami):
-  it composes on top without replacing its folding, fold text, or keymaps.
+- Coexists with [nvim-origami](https://github.com/chrisgrieser/nvim-origami) —
+  leaves its folding, fold text, and keymaps intact.
 - Python built in; add more languages via config.
 - Options for single-line vs. multi-line calls and a minimum line threshold, plus
   `enable` / `auto_fold` toggles.
-
-It works by layering its folds onto your existing `expr` foldexpr (Treesitter or
-LSP), so general folds are byte-for-byte identical to before and everything is
-restored on `:FoldLoggingDisable`.
 
 ## Installation
 
@@ -98,8 +94,7 @@ opts = {
 }
 ```
 
-Use `:InspectTree` to find the call node type and callee. Detection uses
-Treesitter when a parser is available and falls back to a line regex otherwise.
+Use `:InspectTree` to find the call node type and callee.
 
 ## API
 
