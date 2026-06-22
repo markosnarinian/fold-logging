@@ -3,8 +3,6 @@
 Automatically fold logging statements—and optionally debug-print calls—without
 changing the rest of your folding setup.
 
-<a href="https://www.producthunt.com/products/fold-logging-nvim?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-fold-logging-nvim" target="_blank" rel="noopener noreferrer"><img alt="fold-logging.nvim - Fold logging calls in nvim to visually declutter your code. | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1178079&amp;theme=dark&amp;t=1782132087500"></a>
-
 ## Features
 
 <img width="1822" height="1095" alt="Screenshot 2026-06-22 at 10 46 41 AM" src="https://github.com/user-attachments/assets/c8148518-8c50-49c3-bbf5-2c659513a331" />
