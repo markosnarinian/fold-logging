@@ -11,6 +11,10 @@ M.defaults = {
   -- When false, folds are only created/closed via the commands or the Lua API.
   auto_fold = true,
 
+  -- Also fold plain debug-print calls (a language's `print_patterns`, e.g.
+  -- Python's `print` / `pprint`). Logging calls fold regardless of this.
+  fold_print = false,
+
   -- Fold logging calls that occupy a single physical line on their own. When
   -- enabled, attached windows get 'foldminlines' = 0 automatically (restored on
   -- disable) so one-line folds actually collapse. Note that several *adjacent*

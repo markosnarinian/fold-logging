@@ -17,7 +17,7 @@ local function check(name, cond, extra)
   end
 end
 
-require("fold-logging").setup({ auto_fold = true })
+require("fold-logging").setup({ auto_fold = true, fold_print = true })
 local config = require("fold-logging.config")
 
 -- Simulate a foldexpr-based general-folding setup (as origami/treesitter give).
@@ -56,6 +56,16 @@ check("py: detects first chatty print", starts[21] ~= nil, vim.inspect(regions))
 check("py: does not flag import", starts[1] == nil)
 -- it should NOT flag logging setup calls (basicConfig / getLogger), only levels
 check("py: does not flag logging.getLogger setup", starts[3] == nil, vim.inspect(regions))
+
+-- fold_print toggle: print(...) is only detected when fold_print is enabled
+config.options.fold_print = false
+local noprint = {}
+for _, r in ipairs(detect.detect(buf)) do
+  noprint[r.start] = r["end"]
+end
+check("fold_print=false: print(15) NOT detected", noprint[15] == nil, vim.inspect(noprint))
+check("fold_print=false: logging.info(16) still detected", noprint[16] ~= nil, vim.inspect(noprint))
+config.options.fold_print = true
 
 -- ---- Folding behaviour ----------------------------------------------------
 require("fold-logging.fold")._recompute(buf)
@@ -122,7 +132,12 @@ config.options.min_lines = 1
 
 -- ---- regex fallback (no treesitter) ---------------------------------------
 local fb = require("fold-logging.detect").fallback
-local spec = config.options.languages.python
+-- effective spec with print patterns active (mirrors fold_print = true)
+local pyspec = config.options.languages.python
+local spec = {
+  call_node_types = pyspec.call_node_types,
+  patterns = vim.list_extend(vim.deepcopy(pyspec.patterns), vim.deepcopy(pyspec.print_patterns)),
+}
 vim.cmd("enew")
 vim.api.nvim_buf_set_lines(0, 0, -1, false, {
   "x = 1",

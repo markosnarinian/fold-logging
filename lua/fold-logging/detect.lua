@@ -121,6 +121,16 @@ local function normalize(regions)
   return out
 end
 
+-- The patterns active for a spec: always `patterns`, plus `print_patterns` when
+-- the `fold_print` option is enabled.
+local function effective_spec(spec)
+  local patterns = vim.deepcopy(spec.patterns or {})
+  if config.options.fold_print and spec.print_patterns then
+    vim.list_extend(patterns, spec.print_patterns)
+  end
+  return { call_node_types = spec.call_node_types, patterns = patterns }
+end
+
 -- Public: detect logging regions in `bufnr`. Returns normalized outermost
 -- regions sorted by start line.
 function M.detect(bufnr)
@@ -130,6 +140,7 @@ function M.detect(bufnr)
   if not spec then
     return {}
   end
+  spec = effective_spec(spec)
   local lang = vim.treesitter.language.get_lang(ft) or ft
   local regions = M.treesitter(bufnr, spec, lang)
   if not regions then

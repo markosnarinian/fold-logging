@@ -9,7 +9,7 @@ of your folding setup.
 def compute(values):
     logger.debug(···)          # ← folded
     total = sum(values)
-    print(···)                 # ← folded
+    logger.info(···)           # ← folded
     return total               #   the function itself stays unfolded
 ```
 
@@ -61,35 +61,48 @@ Pass options through `opts` (or `require("fold-logging").setup{}`). Defaults:
 
 ```lua
 {
-  enable = true,            -- master switch
-  auto_fold = true,         -- fold automatically on open
-  fold_single_line = false, -- also fold lone one-line calls (sets foldminlines=0)
-  min_lines = 1,            -- only fold regions spanning >= this many lines
-  notify = true,            -- emit vim.notify messages
-  base_foldexpr = nil,      -- general-fold source; nil auto-detects Treesitter/LSP
-  languages = {},           -- deep-merged over the built-ins
+  enable = true,
+  auto_fold = true,
+  fold_print = false,
+  fold_single_line = false,
+  min_lines = 1,
+  notify = true,
+  base_foldexpr = nil,
+  languages = {},
 }
 ```
 
-If you use LSP folds and auto-detection does not pick them up, set:
-
-```lua
-opts = {
-  base_foldexpr = vim.lsp.foldexpr,
-}
-```
+- `enable` — Master switch. When `false`, the plugin installs nothing and every
+  command is a no-op.
+- `auto_fold` — Fold logging statements automatically when a supported file
+  opens. When `false`, folds are only created/closed via the commands or the API.
+- `fold_print` — Also fold plain debug-print calls (Python's `print` / `pprint`).
+  Logging-level calls fold regardless; this just adds the print family.
+- `fold_single_line` — Fold logging calls that sit alone on a single line.
+  Enabling it also sets `foldminlines = 0` on attached windows (restored on
+  disable) so a one-line fold actually collapses. Adjacent logging lines are
+  merged into one multi-line fold regardless of this option.
+- `min_lines` — Minimum number of lines a (merged) logging region must span to be
+  folded. `1` folds everything that qualifies; raise it to fold only larger
+  blocks.
+- `notify` — Emit `vim.notify` messages (warnings, "nothing detected", …).
+- `base_foldexpr` — The fold expression that produces your general folds. `nil`
+  auto-detects (LSP when your foldexpr mentions `lsp`, otherwise Treesitter). Set
+  to a `function(lnum)` to override, e.g. `base_foldexpr = vim.lsp.foldexpr`.
+- `languages` — Per-filetype detection specs, deep-merged over the built-ins. See
+  [Adding a language](#adding-a-language).
 
 ### What gets folded
 
-For Python, the built-in rules fold:
+For Python, the built-in rules fold any call ending in a standard log level:
+`.debug`, `.info`, `.warning`, `.warn`, `.error`, `.critical`, `.exception`,
+`.fatal`, `.log` (so `logging.info(...)`, `logger.debug(...)`,
+`self.logger.warning(...)`, …).
 
-- `print(...)`
-- `pprint(...)`
-- calls ending in a standard log level: `.debug`, `.info`, `.warning`, `.warn`,
-  `.error`, `.critical`, `.exception`, `.fatal`, `.log`
+`print(...)` and `pprint(...)` are only folded when `fold_print = true`.
 
 Setup calls such as `logging.basicConfig(...)` and `logging.getLogger(...)` are
-not folded.
+never folded.
 
 ### Adding a language
 
@@ -97,6 +110,7 @@ Languages are keyed by Neovim filetype. A language spec contains:
 
 - `call_node_types`: Treesitter node types that represent calls
 - `patterns`: Lua patterns matched against the called function name
+- `print_patterns` (optional): extra patterns folded only when `fold_print = true`
 
 ```lua
 opts = {

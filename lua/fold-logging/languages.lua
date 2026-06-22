@@ -15,15 +15,16 @@
 
 local M = {}
 
--- Standard library log-level methods. Matching on the method name (anchored to
--- the end of the callee) folds `logging.info(...)`, `logger.debug(...)`,
--- `self.logger.warning(...)`, `log.error(...)`, ... while deliberately leaving
--- setup calls like `logging.basicConfig(...)` / `logging.getLogger(...)` alone.
+-- `patterns` are always active. `print_patterns` are only used when the
+-- `fold_print` option is enabled.
+--
+-- The log-level patterns match on the method name (anchored to the end of the
+-- callee), so `logging.info(...)`, `logger.debug(...)`, `self.logger.warning(...)`,
+-- `log.error(...)`, ... fold, while setup calls like `logging.basicConfig(...)`
+-- / `logging.getLogger(...)` are deliberately left alone.
 local python = {
   call_node_types = { "call" },
   patterns = {
-    "^print$", -- print(...)
-    "^pprint$", -- pprint(...)
     "%.debug$",
     "%.info$",
     "%.warning$",
@@ -33,6 +34,10 @@ local python = {
     "%.exception$",
     "%.fatal$",
     "%.log$", -- logging.log(level, ...)
+  },
+  print_patterns = {
+    "^print$", -- print(...)
+    "^pprint$", -- pprint(...)
   },
 }
 
