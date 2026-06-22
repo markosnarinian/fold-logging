@@ -32,7 +32,7 @@ replacing it.
 {
   "markosnarinian/fold-logging.nvim",
   ft = { "python" },
-  cmd = { "FoldLoggingFold", "FoldLoggingUnfold", "FoldLoggingToggle", "FoldLoggingList" },
+  cmd = { "FLFold", "FLUnfold", "FLToggle", "FLList" },
   opts = {},
 }
 ```
@@ -47,13 +47,13 @@ file opens. You can also control them manually:
 
 | Command               | Action                                       |
 | --------------------- | -------------------------------------------- |
-| `:FoldLoggingFold`    | Close logging folds in the current buffer.   |
-| `:FoldLoggingUnfold`  | Open logging folds in the current buffer.    |
-| `:FoldLoggingToggle`  | Toggle logging folds in the current buffer.  |
-| `:FoldLoggingRefresh` | Recompute logging folds after edits.         |
-| `:FoldLoggingList`    | List detected calls in the quickfix window.  |
-| `:FoldLoggingEnable`  | Re-enable and attach to open buffers.        |
-| `:FoldLoggingDisable` | Disable and restore previous folding.        |
+| `:FLFold`    | Close logging folds in the current buffer.   |
+| `:FLUnfold`  | Open logging folds in the current buffer.    |
+| `:FLToggle`  | Toggle logging folds in the current buffer.  |
+| `:FLRefresh` | Recompute logging folds after edits.         |
+| `:FLList`    | List detected calls in the quickfix window.  |
+| `:FLEnable`  | Re-enable and attach to open buffers.        |
+| `:FLDisable` | Disable and restore previous folding.        |
 
 ## Configuration
 
