@@ -8,6 +8,7 @@ M._base = {} -- bufnr -> base foldexpr function(lnum)
 M._prev = {} -- bufnr -> { foldmethod, foldexpr } captured before we attached
 M._cache = {} -- bufnr -> { tick, result = {lnum -> foldexpr value}, regions }
 M._closed = {} -- bufnr -> bool: are the logging folds currently meant to be closed?
+M._known = {} -- bufnr -> multiset of logging region signatures seen after the last fold pass
 
 -- Default base: Treesitter folds. Safe to call on any line; returns "0" if no
 -- parser so we never throw inside a foldexpr.
@@ -49,6 +50,19 @@ local function resolve(value, prev)
   return num
 end
 
+local function signature(region)
+  return table.concat(region.texts or {}, "\n")
+end
+
+local function signatures(regions)
+  local out = {}
+  for _, r in ipairs(regions) do
+    local key = signature(r)
+    out[key] = (out[key] or 0) + 1
+  end
+  return out
+end
+
 -- Merge adjacent detection regions and apply the min_lines filter. Returns the
 -- regions that should actually become folds.
 local function fold_regions(detected, opts)
@@ -57,8 +71,9 @@ local function fold_regions(detected, opts)
     local prev = merged[#merged]
     if prev and r.start <= prev["end"] + 1 then
       prev["end"] = math.max(prev["end"], r["end"])
+      prev.texts[#prev.texts + 1] = r.text or ""
     else
-      merged[#merged + 1] = { start = r.start, ["end"] = r["end"] }
+      merged[#merged + 1] = { start = r.start, ["end"] = r["end"], texts = { r.text or "" } }
     end
   end
 
@@ -70,6 +85,21 @@ local function fold_regions(detected, opts)
     end
   end
   return out
+end
+
+local function close_regions(win, regions)
+  vim.api.nvim_win_call(win, function()
+    local view = vim.fn.winsaveview()
+    for _, r in ipairs(regions) do
+      -- Only act when the line is currently visible (not hidden by a closed
+      -- parent). `zc` then closes the innermost open fold, i.e. the logging one.
+      if vim.fn.foldlevel(r.start) > 0 and vim.fn.foldclosed(r.start) == -1 then
+        vim.fn.cursor(r.start, 1)
+        pcall(vim.cmd, "normal! zc")
+      end
+    end
+    vim.fn.winrestview(view)
+  end)
 end
 
 -- Build (and cache) the per-line foldexpr result for `bufnr`. Non-logging lines
@@ -233,19 +263,37 @@ function M.close(bufnr)
   M._recompute(bufnr)
   local regions = M._cache[bufnr].regions
 
-  vim.api.nvim_win_call(win, function()
-    local view = vim.fn.winsaveview()
-    for _, r in ipairs(regions) do
-      -- Only act when the line is currently visible (not hidden by a closed
-      -- parent). `zc` then closes the innermost open fold, i.e. the logging one.
-      if vim.fn.foldlevel(r.start) > 0 and vim.fn.foldclosed(r.start) == -1 then
-        vim.fn.cursor(r.start, 1)
-        pcall(vim.cmd, "normal! zc")
-      end
-    end
-    vim.fn.winrestview(view)
-  end)
+  close_regions(win, regions)
+  M._known[bufnr] = signatures(regions)
   M._closed[bufnr] = true
+end
+
+-- Close only regions that were not present during the previous fold pass. Used
+-- on write so manually opened existing logging folds stay open.
+function M.close_new(bufnr)
+  bufnr = (not bufnr or bufnr == 0) and vim.api.nvim_get_current_buf() or bufnr
+  local win = M.window_for(bufnr)
+  if not win then
+    return
+  end
+  if not M.ensure_attached(bufnr, win) then
+    return
+  end
+  local known = vim.deepcopy(M._known[bufnr] or {})
+  M._recompute(bufnr)
+  local regions = M._cache[bufnr].regions
+  local new_regions = {}
+  for _, r in ipairs(regions) do
+    local key = signature(r)
+    if (known[key] or 0) > 0 then
+      known[key] = known[key] - 1
+    else
+      new_regions[#new_regions + 1] = r
+    end
+  end
+
+  close_regions(win, new_regions)
+  M._known[bufnr] = signatures(regions)
 end
 
 -- Open only the logging folds (folds that start exactly on a detected region).
@@ -297,6 +345,9 @@ function M.refresh(bufnr)
   end
   if M._closed[bufnr] then
     M.close(bufnr)
+  else
+    M._recompute(bufnr)
+    M._known[bufnr] = signatures(M._cache[bufnr] and M._cache[bufnr].regions or {})
   end
 end
 
@@ -338,7 +389,7 @@ function M.detach_all()
       end
     end
   end
-  M._base, M._cache, M._closed, M._prev = {}, {}, {}, {}
+  M._base, M._cache, M._closed, M._prev, M._known = {}, {}, {}, {}, {}
 end
 
 return M

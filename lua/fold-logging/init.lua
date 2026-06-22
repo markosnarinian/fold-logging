@@ -40,7 +40,7 @@ local function on_write(buf)
   end
   vim.schedule(function()
     if vim.api.nvim_buf_is_valid(buf) and config.options.enable and config.options.auto_fold then
-      pcall(fold.close, buf)
+      pcall(fold.close_new, buf)
     end
   end)
 end

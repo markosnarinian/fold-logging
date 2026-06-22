@@ -106,6 +106,10 @@ vim.api.nvim_win_call(win, function()
 end)
 
 -- New logging statements should be detected and folded on write.
+require("fold-logging").unfold(buf)
+vim.api.nvim_win_call(win, function()
+  check("write setup: existing logger.debug fold is open", vim.fn.foldclosed(7) == -1)
+end)
 vim.api.nvim_buf_set_lines(buf, 17, 17, false, {
   '    logger.info("new write-time log")',
   '    logger.warning("another write-time log")',
@@ -116,6 +120,7 @@ vim.wait(200, function()
 end)
 vim.api.nvim_win_call(win, function()
   check("write: new logging fold is closed", vim.fn.foldclosed(18) == 18, "foldclosed(18)=" .. vim.fn.foldclosed(18))
+  check("write: existing logging fold stays open", vim.fn.foldclosed(7) == -1, "foldclosed(7)=" .. vim.fn.foldclosed(7))
 end)
 vim.api.nvim_buf_set_lines(buf, 17, 19, false, {})
 require("fold-logging").fold(buf)
