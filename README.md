@@ -5,13 +5,7 @@ of your folding setup.
 
 ## Overview
 
-```python
-def compute(values):
-    logger.debug(···)          # ← folded
-    total = sum(values)
-    print(···)                 # ← folded
-    return total               #   the function itself stays unfolded
-```
+<img width="1822" height="1095" alt="Screenshot 2026-06-22 at 10 46 41 AM" src="https://github.com/user-attachments/assets/c8148518-8c50-49c3-bbf5-2c659513a331" />
 
 - Closes logging folds when a supported file opens.
 - Preserves your existing `expr` folds for functions, classes, and blocks.
