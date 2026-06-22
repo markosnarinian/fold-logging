@@ -67,7 +67,26 @@ Pass options through `opts` (or `require("fold-logging").setup{}`). Defaults:
   min_lines = 2,
   notify = true,
   base_foldexpr = nil,
-  languages = {},
+  languages = {
+    python = {
+      call_node_types = { "call" },
+      patterns = {
+        "%.debug$",
+        "%.info$",
+        "%.warning$",
+        "%.warn$",
+        "%.error$",
+        "%.critical$",
+        "%.exception$",
+        "%.fatal$",
+        "%.log$",
+      },
+      print_patterns = {
+        "^print$",
+        "^pprint$",
+      },
+    },
+  },
 }
 ```
 
