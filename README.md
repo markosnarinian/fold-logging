@@ -1,18 +1,26 @@
 # fold-logging.nvim
 
-Automatically fold logging and debug-print statements without changing the rest
-of your folding setup.
+Automatically fold logging statements—and optionally debug-print calls—without
+changing the rest of your folding setup.
 
-## Overview
+## Features
 
 <img width="1822" height="1095" alt="Screenshot 2026-06-22 at 10 46 41 AM" src="https://github.com/user-attachments/assets/c8148518-8c50-49c3-bbf5-2c659513a331" />
 
-- Closes logging folds when a supported file opens.
+- Automatically closes logging folds when a supported file opens.
+- Folds newly added logging statements on write without re-closing logging folds
+  you manually opened.
 - Preserves your existing `expr` folds for functions, classes, and blocks.
-- Works with Treesitter folds, LSP folds, and
+- Composes with Treesitter folds, LSP folds, and
   [nvim-origami](https://github.com/chrisgrieser/nvim-origami).
-- Supports Python out of the box; other languages can be configured with Lua
-  patterns.
+- Supports Python logging calls out of the box.
+- Optionally folds plain debug-print calls such as Python's `print(...)` and
+  `pprint(...)`.
+- Lets you choose the minimum folded region size, so lone one-line calls can stay
+  visible while adjacent logging blocks still fold.
+- Supports custom languages and logging APIs with Lua patterns.
+- Provides commands and a Lua API for folding, unfolding, toggling, refreshing,
+  listing detections, enabling, and disabling.
 
 ## Installation
 
@@ -26,7 +34,15 @@ replacing it.
 {
   "markosnarinian/fold-logging.nvim",
   ft = { "python" },
-  cmd = { "FLFold", "FLUnfold", "FLToggle", "FLList" },
+  cmd = {
+    "FLFold",
+    "FLUnfold",
+    "FLToggle",
+    "FLRefresh",
+    "FLList",
+    "FLEnable",
+    "FLDisable",
+  },
   opts = {},
 }
 ```
@@ -87,7 +103,8 @@ Pass options through `opts` (or `require("fold-logging").setup{}`). Defaults:
 - `enable` — Master switch. When `false`, the plugin installs nothing and every
   command is a no-op.
 - `auto_fold` — Fold logging statements automatically when a supported file
-  opens. When `false`, folds are only created/closed via the commands or the API.
+  opens, and fold newly added logging statements when the file is written. When
+  `false`, folds are only created/closed via the commands or the API.
 - `fold_print` — Also fold plain debug-print calls (Python's `print` / `pprint`).
   Logging-level calls fold regardless; this just adds the print family.
 - `min_lines` — Minimum number of lines a (merged) logging region must span to be
@@ -97,7 +114,9 @@ Pass options through `opts` (or `require("fold-logging").setup{}`). Defaults:
 - `base_foldexpr` — The fold expression that produces your general folds. `nil`
   auto-detects (LSP when your foldexpr mentions `lsp`, otherwise Treesitter). Set
   to a `function(lnum)` to override, e.g. `base_foldexpr = vim.lsp.foldexpr`.
-- `languages` — Per-filetype detection specs, deep-merged over the built-ins. See
+- `languages` — Per-filetype detection specs, deep-merged over the built-ins.
+  Each spec defines Treesitter call node types, always-active logging patterns,
+  and optional `print_patterns` used only when `fold_print = true`. See
   [Adding a language](#adding-a-language).
 
 ### What gets folded

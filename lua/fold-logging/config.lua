@@ -7,8 +7,9 @@ M.defaults = {
   -- become no-ops.
   enable = true,
 
-  -- Fold logging statements automatically when a supported file is opened.
-  -- When false, folds are only created/closed via the commands or the Lua API.
+  -- Fold logging statements automatically when a supported file is opened, and
+  -- fold newly added logging statements when the file is written. When false,
+  -- folds are only created/closed via the commands or the Lua API.
   auto_fold = true,
 
   -- Also fold plain debug-print calls (a language's `print_patterns`, e.g.
