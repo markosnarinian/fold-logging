@@ -29,7 +29,7 @@ local function open_fixture(path)
   vim.api.nvim_set_option_value("foldexpr", "v:lua.vim.treesitter.foldexpr()", { win = win })
   vim.api.nvim_set_option_value("foldlevel", 99, { win = win }) -- general folds open
   -- Trigger our BufWinEnter path now that the base foldexpr is set.
-  require("fold-logging.init")
+  require("fold-logging")
   vim.cmd("doautocmd BufWinEnter")
   return vim.api.nvim_get_current_buf()
 end
@@ -92,7 +92,11 @@ end)
 local win = vim.api.nvim_get_current_win()
 vim.api.nvim_win_call(win, function()
   check("autofold: logger.debug fold is closed", vim.fn.foldclosed(7) == 7, "foldclosed(7)=" .. vim.fn.foldclosed(7))
-  check("autofold: function body line not folded away", vim.fn.foldclosed(13) == -1, "foldclosed(13)=" .. vim.fn.foldclosed(13))
+  check(
+    "autofold: function body line not folded away",
+    vim.fn.foldclosed(13) == -1,
+    "foldclosed(13)=" .. vim.fn.foldclosed(13)
+  )
 end)
 
 -- Unfold then re-fold via the API.
@@ -130,7 +134,11 @@ require("fold-logging").fold(buf)
 local base_val = vim.treesitter.foldexpr(6) -- def compute(...) line
 require("fold-logging.fold")._recompute(buf)
 local ours_val = require("fold-logging.fold")._cache[buf].result[6]
-check("compose: non-logging line keeps base foldexpr value", tostring(ours_val) == tostring(base_val), ("base=%s ours=%s"):format(tostring(base_val), tostring(ours_val)))
+check(
+  "compose: non-logging line keeps base foldexpr value",
+  tostring(ours_val) == tostring(base_val),
+  ("base=%s ours=%s"):format(tostring(base_val), tostring(ours_val))
+)
 
 -- ---- min_lines option -----------------------------------------------------
 config.options.min_lines = 3
