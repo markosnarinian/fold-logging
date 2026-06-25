@@ -2,14 +2,17 @@ local config = require("fold-logging.config")
 local fold = require("fold-logging.fold")
 local detect = require("fold-logging.detect")
 
+---@class FoldLogging
 local M = {}
 
+---@param buf integer
 local function supported(buf)
   return config.options.languages[vim.bo[buf].filetype] ~= nil
 end
 
 -- Attach to a freshly visible supported buffer and, if enabled, auto-fold once
 -- per file load.
+---@param buf integer
 local function on_open(buf)
   if not config.options.enable or not vim.api.nvim_buf_is_valid(buf) or not supported(buf) then
     return
@@ -34,8 +37,14 @@ local function on_open(buf)
   end
 end
 
+---@param buf integer
 local function on_write(buf)
-  if not config.options.enable or not config.options.auto_fold or not vim.api.nvim_buf_is_valid(buf) or not supported(buf) then
+  if
+    not config.options.enable
+    or not config.options.auto_fold
+    or not vim.api.nvim_buf_is_valid(buf)
+    or not supported(buf)
+  then
     return
   end
   vim.schedule(function()
@@ -127,23 +136,11 @@ function M.disable()
 end
 
 -- Public Lua API.
-M.fold = function(buf)
-  fold.close(buf)
-end
-M.unfold = function(buf)
-  fold.open(buf)
-end
-M.toggle = function(buf)
-  fold.toggle(buf)
-end
-M.list = function(buf)
-  fold.list(buf)
-end
-M.refresh = function(buf)
-  fold.refresh(buf)
-end
-M.detect = function(buf)
-  return detect.detect(buf)
-end
+M.detect = require("fold-logging.detect").detect
+M.fold = fold.close
+M.list = fold.list
+M.refresh = fold.refresh
+M.toggle = fold.toggle
+M.unfold = fold.open
 
 return M

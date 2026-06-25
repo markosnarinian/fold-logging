@@ -13,36 +13,41 @@
 -- unless you anchor them yourself). They are tested against the callee text, so
 -- `"%.info$"` matches `logging.info` / `logger.info` / `self.logger.info`.
 
+---@class FoldLogging.Languages.Language
+---@field call_node_types? string[]
+---@field patterns? string[]
+---@field print_patterns? string[]
+
+---@class FoldLogging.Languages
+---@field defaults table<string, FoldLogging.Languages.Language>
 local M = {}
 
--- `patterns` are always active. `print_patterns` are only used when the
--- `fold_print` option is enabled.
---
--- The log-level patterns match on the method name (anchored to the end of the
--- callee), so `logging.info(...)`, `logger.debug(...)`, `self.logger.warning(...)`,
--- `log.error(...)`, ... fold, while setup calls like `logging.basicConfig(...)`
--- / `logging.getLogger(...)` are deliberately left alone.
-local python = {
-  call_node_types = { "call" },
-  patterns = {
-    "%.debug$",
-    "%.info$",
-    "%.warning$",
-    "%.warn$",
-    "%.error$",
-    "%.critical$",
-    "%.exception$",
-    "%.fatal$",
-    "%.log$", -- logging.log(level, ...)
-  },
-  print_patterns = {
-    "^print$", -- print(...)
-    "^pprint$", -- pprint(...)
-  },
-}
-
 M.defaults = {
-  python = python,
+  -- `patterns` are always active. `print_patterns` are only used when the
+  -- `fold_print` option is enabled.
+  --
+  -- The log-level patterns match on the method name (anchored to the end of the
+  -- callee), so `logging.info(...)`, `logger.debug(...)`, `self.logger.warning(...)`,
+  -- `log.error(...)`, ... fold, while setup calls like `logging.basicConfig(...)`
+  -- / `logging.getLogger(...)` are deliberately left alone.
+  python = {
+    call_node_types = { "call" },
+    patterns = {
+      "%.debug$",
+      "%.info$",
+      "%.warning$",
+      "%.warn$",
+      "%.error$",
+      "%.critical$",
+      "%.exception$",
+      "%.fatal$",
+      "%.log$", -- logging.log(level, ...)
+    },
+    print_patterns = {
+      "^print$", -- print(...)
+      "^pprint$", -- pprint(...)
+    },
+  },
 }
 
 return M
